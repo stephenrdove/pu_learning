@@ -1,3 +1,4 @@
+
 import sklearn
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -5,7 +6,8 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn import metrics
 import numpy as np
 import scipy as sp
-
+import matplotlib.pyplot as plt
+'''
 
 categories = ['alt.atheism', 'talk.religion.misc','comp.graphics', 'sci.space']
 newsgroups_train = fetch_20newsgroups(subset='train',categories=categories)
@@ -59,7 +61,8 @@ print()
 #print(X.shape)
 #print(X[0].shape)
 #print(X.nnz / float(X.shape[0]))
-'''
+
+
 newsgroups_test = fetch_20newsgroups(subset='test',
                         remove=('headers', 'footers', 'quotes'),
                         categories=categories)
@@ -69,3 +72,9 @@ clf.fit(X, newsgroups_train.target)
 pred = clf.predict(vectors_test)
 print(metrics.f1_score(pred, newsgroups_test.target, average='macro'))
 '''
+
+plt.scatter([1,2,3],[4,5,6],c='green')
+plt.scatter([3,3,2],[4,5,6],c='red')
+plt.legend(['+','-'])
+
+plt.savefig(fname='../figures/plot1')
