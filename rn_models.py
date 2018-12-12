@@ -31,25 +31,34 @@ def rns_clf(dataset, num_rns):
     dataset.make_rn(rn_indices)
     print('\nRNS (%d samples): Reliable Negatives saved to dataset.RN' % num_rns)
 
-def cluster_clf(dataset,n_clusters,threshold=0.95):
-    vectors = np.concatenate((dataset.P,dataset.U))
+def cluster_clf(dataset,n_clusters,threshold=0.95,rn=True):
+    vectors = np.concatenate((dataset.U,dataset.P))
     U_size, P_size = dataset.U.shape[0], dataset.P.shape[0]
 
     vectors = sparse.csr_matrix(vectors)
-    labels = np.ones(vectors.shape[0])
-    labels[-U_size:] = -1 * labels[-U_size:]
+    labels = np.zeros(vectors.shape[0])
+    labels[-P_size:] += 1 
 
     real_labels = dataset.true_labels
 
     clf = create_clusters(vectors,n_clusters,real_labels)
     cluster_labels = clf.labels_
+    
     rn_labels = cluster_rn_labels(cluster_labels,labels,n_clusters,threshold)
+    #print(rn_labels)
 
-    rn_indices = [i for i,label in enumerate(cluster_labels) if label in rn_labels and i > P_size]
-    rn_indices = np.asarray(rn_indices) - P_size
-    dataset.make_rn(rn_indices)
+    if rn:
+        rn_indices = [i for i,label in enumerate(cluster_labels) if label in rn_labels and i < U_size]
+        rn_indices = np.asarray(rn_indices)
+        dataset.make_rn(rn_indices)
 
-    print('\nCluster (%d clusters): Reliable Negatives saved to dataset.RN' % n_clusters)
+        print('\nCluster (%d clusters): Reliable Negatives saved to dataset.RN' % n_clusters)
+        return None
+    
+    else:
+        test_labels = clf.predict(dataset.test_X) 
+        new_labels = [0 if i in rn_labels else 1 for i in test_labels]
+        return new_labels
 
 def create_clusters(vectors,n_clusters,labels):
     
@@ -59,11 +68,7 @@ def create_clusters(vectors,n_clusters,labels):
             init_size=1000, batch_size=1000,)
         clf.fit(vectors)
 
-        #print("Homogeneity: %0.3f" % metrics.homogeneity_score(real_labels, clf.labels_))
-        #print("Completeness: %0.3f" % metrics.completeness_score(real_labels, clf.labels_))
-        #print("V-measure: %0.3f" % metrics.v_measure_score(labels, clf.labels_))
-        
-        done = (metrics.v_measure_score(labels, clf.labels_) > 0.3)
+        done = (metrics.v_measure_score(labels, clf.labels_) > 0.0)
 
     return clf
 
@@ -74,12 +79,15 @@ def cluster_rn_labels(cluster_labels,labels,n_clusters,threshold):
         cluster_dict[k] = [0,0]
 
     for i,label in enumerate(cluster_labels):
-        cluster_dict[label][labels[i] == -1] += 1
-    
-    rn_labels = [k for k in range(n_clusters) if cluster_dict[k][1]/sum(cluster_dict[k]) > threshold]
+        cluster_dict[label][labels[i] == 0] += 1
+
+    rn_labels = [k for k in range(n_clusters) if sum(cluster_dict[k]) > 0 and cluster_dict[k][1]/sum(cluster_dict[k]) > threshold]
     if len(rn_labels) == 0:
         k_max = np.argmax([cluster_dict[k][1] for k in cluster_dict])
         rn_labels.append(k_max)
+    if len(rn_labels) == len(cluster_dict):
+        k_min = np.argmin([cluster_dict[k][1] for k in cluster_dict])
+        rn_labels = [lab for lab in rn_labels if lab != k_min]
     
     return rn_labels
         

@@ -73,8 +73,16 @@ pred = clf.predict(vectors_test)
 print(metrics.f1_score(pred, newsgroups_test.target, average='macro'))
 '''
 
-plt.scatter([1,2,3],[4,5,6],c='green')
-plt.scatter([3,3,2],[4,5,6],c='red')
-plt.legend(['+','-'])
+plt.boxplot([[1,2,3],[3,4,5],[2,9,34,6,4]],labels=['a','b','c'])
+plt.show()
+#plt.scatter([3,3,2],[4,5,6],c='red')
+#plt.legend(['+','-'])
 
-plt.savefig(fname='../figures/plot1')
+#plt.savefig(fname='../figures/plot1')
+'''
+categories = ['alt.atheism', 'talk.religion.misc','comp.graphics', 'sci.space']
+newsgroups_train = fetch_20newsgroups(subset='train',categories=categories)
+print(newsgroups_train.target)
+#for label in newsgroups_train["target_names"]:
+#    print(label)
+'''

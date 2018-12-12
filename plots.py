@@ -1,4 +1,4 @@
-import numpy as numpy
+import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn import manifold
@@ -27,18 +27,47 @@ def tsne_plot(X,y,fname_ext):
     plt.savefig(fname=fname)
 
 def basic_plot(scores_dict,x_axis,fname_ext):
-    plt.title('F1 Score by Gamma Value')
+    plt.title('RNS: F1 Score by Sample Size')
     legend_names = []
     # scores_dict = {legend name: array of scores}
     for score in scores_dict:
         legend_names.append(score)
         plt.plot(x_axis,scores_dict[score])
 
-    plt.xlabel('Gamma Value')
+    plt.xlabel('Fraction of U')
     plt.ylabel('F1 Score')
     plt.legend(legend_names)
 
-    fname = '../figures/f1bygamma_' + fname_ext
+    fname = '../figures/threshold_' + fname_ext
     plt.savefig(fname=fname)
 
+def box_plot(scores_dict,fname_ext):
+    plt.title('Clusters: F1 Scores')
+    legend_names = []
+    scores = []
+    # scores_dict = {legend name: array of scores}
+    for score in scores_dict:
+        legend_names.append(score)
+        scores.append(scores_dict[score])
+
+
+    plt.xlabel('Cluster Method')
+    plt.ylabel('F1 Score')
+    plt.boxplot(scores,labels=legend_names)
+
+    fname = '../figures/box2_' + fname_ext
+    plt.savefig(fname=fname)
+
+def latex_table(scores_dict):
+
+    print('\\begin{tabular}{|c|c|c|c|}')
+    print('\t\\hline')
+    print('\tModel & F1 Score & Precision & Recall \\\\')
+    print('\t\\hline')
+    for score in scores_dict:
+        print('\t',score,'&',np.round(scores_dict[score][0][0],2)
+                ,'&',np.round(scores_dict[score][0][1],2)
+                ,'&',np.round(scores_dict[score][0][2],2),'\\\\')
+        print('\t\\hline')
+    print('\\end{tabular}')
 

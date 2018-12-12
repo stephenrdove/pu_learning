@@ -53,8 +53,8 @@ class Dataset():
         self.U = np.concatenate((self.negative,unlabeled_positive))
         self.U_labels = np.zeros(self.U.shape[0])
         self.U_labels[self.negative.shape[0]:] = np.ones(unlabeled_positive.shape[0])
-        self.true_labels = np.concatenate((self.positive_true[:P_size],
-                            self.negative_true,self.positive_true[P_size:]))
+        self.true_labels = np.concatenate((self.negative_true,
+                            self.positive_true[P_size:],self.positive_true[:P_size]))
 
     def make_rn(self,rn_indices):
         self.RN = self.U[rn_indices]
@@ -70,11 +70,13 @@ class Dataset():
 
     def test_data(self):
         test_set = fetch_20newsgroups(subset='test',
-                        remove=('headers', 'footers', 'quotes'))
+                        remove=('headers', 'footers', 'quotes'),
+                        categories=self.cats)
         self.test_X = self.vectorizer.transform(test_set.data)
-        self.test_vector_length = self.test_X.shape[1]
+        self.test_X = self.test_X.toarray()
+        #self.test_vector_length = self.test_X.shape[1]
         tf_labels = np.asarray(test_set.target) == self.category
-        self.test_labels = tf_labels + (tf_labels-1)
+        self.test_labels = tf_labels
 
 
 def save_dataset(dataset,filename):

@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.svm import LinearSVC
-from sklearn.semi_supervised import LabelPropagation
+from sklearn.semi_supervised import LabelPropagation,LabelSpreading
 from sklearn.metrics import f1_score,precision_score,recall_score
 import scipy as sp
 
@@ -30,24 +30,33 @@ def create_svm(dataset):
 def create_label_prop(dataset):
     vectors,labels = make_vectors(dataset)
     
-    Q_labels = -1 * np.ones(dataset.Q.shape[0])
+    Q_labels = -1 * np.ones(dataset.Q.shape[0] + dataset.test_X.shape[0])
     labels = np.concatenate((labels,Q_labels))
-    vectors = np.concatenate((vectors,dataset.Q))
+    vectors = np.concatenate((vectors,dataset.Q,dataset.test_X))
     
-    label_prop = LabelPropagation()
+    label_prop = LabelSpreading()
     label_prop.fit(vectors,labels)
     print("\tLabel Propogation accuracy:")
 
     return label_prop
 
-def test_clf(clf,dataset,test_name):
-    labels = np.concatenate((dataset.U_labels,np.ones(dataset.P.shape[0])))
-    vectors = np.concatenate((dataset.U,dataset.P))
+def test_clf(clf,dataset,test_name,y=None,on_train=False):
+    if on_train:
+        labels = np.concatenate((dataset.U_labels,np.ones(dataset.P.shape[0])))
+        vectors = np.concatenate((dataset.U,dataset.P))
+    else:
+        vectors = dataset.test_X
+        labels = dataset.test_labels
+
+    if not y:
+        y = clf.predict(vectors)
+
+    #scores = [np.round(f1_score(labels,y),2), np.round(precision_score(labels,y),2),
+    #             np.round(recall_score(labels,y),2)]
+    #dataset.add_scores_dict(scores,test_name)
+    dataset.add_scores_dict(f1_score(labels,y),test_name)
 
     num_vectors = len(labels)
-
-    y = clf.predict(vectors)
-    dataset.add_scores_dict(f1_score(labels,y),test_name)
 
     accuracy = 100 * sum(y == labels) / num_vectors
     print('\t\tAccuracy: ', accuracy, '%')
