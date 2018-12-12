@@ -34,7 +34,7 @@ def create_label_prop(dataset):
     labels = np.concatenate((labels,Q_labels))
     vectors = np.concatenate((vectors,dataset.Q,dataset.test_X))
     
-    label_prop = LabelSpreading()
+    label_prop = LabelPropagation()
     label_prop.fit(vectors,labels)
     print("\tLabel Propogation accuracy:")
 
